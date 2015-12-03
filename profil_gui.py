@@ -27,14 +27,14 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.centralwidget = QtGui.QWidget(MainWindow)
 
         self.widgets(MainWindow)
-        if MDEBUG:
-            self.plotSett() # ??? debug
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.centerOnScreen(MainWindow)
         self.layouts(MainWindow)
         self.readTangoData()
         self.signals()
+        if MDEBUG:
+            self.plotSett() # ??? debug
 
     def widgets(self,MainWindow):
         #3
@@ -95,18 +95,24 @@ class Ui_MainWindow(QtGui.QMainWindow):
                                     Qt.QPen(Qt.Qt.black, 2),
                                     Qt.QSize(9, 9))
 
-        # p1 = CurveAppearanceProperties(sStyle=Qwt.QwtSymbol.Rect,
-        #                        sSize=5,
-        #                        sColor="green",
-        #                        sFill=False,
-        #                        lStyle=Qt.Qt.NoPen)
+        p1 = CurveAppearanceProperties(sStyle=Qwt.QwtSymbol.Rect,
+                               sSize=5,
+                               sColor="green",
+                               sFill=False,
+                               lStyle=Qt.Qt.NoPen)
 
-        # self.xPlot.setCurveAppearanceProperties(p1)
+        p2 = self.xPlot.createConfig(self,curvenames=None)
+        # p2['CurveProp'] = {'sStyle':"green"}
 
-        sd = self.xPlot.getCurveNames()
+        print(p2)
+        # p2["sStyle"]=Qwt.QwtSymbol.Ellipse
+
+        self.xPlot.setCurveAppearanceProperties({'wireX':p1})
+
+        # sd = self.xPlot.getCurveNames()
         # self.xPlot.getCurveNames().setSymbol(curveSymbol)
         # sd = self.yPlot.setSymbol
-        print sd
+        # print sd
         # self.yPlot.
 
     def layouts(self, MainWindow):
@@ -186,14 +192,18 @@ class Ui_MainWindow(QtGui.QMainWindow):
         sclX = pr1avgData[1][0:pnt3]
         sclY = pr1avgData[1][pnt3:pnt4]
 
-        p1 = CurveAppearanceProperties(sStyle=Qwt.QwtSymbol.Ellipse,
-                       sSize=5,
-                       sColor="blue",
-                       sFill=True,
-                       lStyle=Qt.Qt.NoPen)
+        # p1 = CurveAppearanceProperties(sStyle=Qwt.QwtSymbol.Ellipse,
+        #                sSize=5,
+        #                sColor="blue",
+        #                sFill=True,
+        #                lStyle=Qt.Qt.NoPen)
+        # self.xPlot.attachRawData({"x":sclX, "y":dataX},properties=p1)
+        # self.yPlot.attachRawData({"x":sclY, "y":dataY},properties=p1)
 
-        self.xPlot.attachRawData({"x":sclX, "y":dataX},properties=p1)
-        self.yPlot.attachRawData({"x":sclY, "y":dataY},properties=p1)
+        self.xPlot.attachRawData({"x":sclX, "y":dataX, 'title':"wireX"})
+        self.yPlot.attachRawData({"x":sclY, "y":dataY, 'title':"wireY"})
+
+
         # self.xPlot.getPickedMarker()
 
         if MDEBUG:
