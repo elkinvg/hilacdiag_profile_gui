@@ -1,13 +1,16 @@
 from PyQt4 import QtGui, QtCore
+from PyQt4 import Qt
 import PyTango
+
+import taurus.external.qt.Qwt5 as Qwt
 
 from datetime import datetime
 import numpy
-from taurus.qt.qtgui.plot import TaurusPlot
-from taurus.qt.qtgui.input import TaurusValueComboBox
+from taurus.qt.qtgui.plot import TaurusPlot,CurveAppearanceProperties
+# from taurus.qt.qtgui.input import TaurusValueComboBox
 
 tango_test = PyTango.DeviceProxy("tango://nuclotango.jinr.ru:10000/training/hilacdiag/1")
-MDEBUG = False
+MDEBUG = True
 
 def test():
     status = tango_test.status()
@@ -24,6 +27,8 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.centralwidget = QtGui.QWidget(MainWindow)
 
         self.widgets(MainWindow)
+        if MDEBUG:
+            self.plotSett() # ??? debug
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.centerOnScreen(MainWindow)
@@ -34,11 +39,13 @@ class Ui_MainWindow(QtGui.QMainWindow):
     def widgets(self,MainWindow):
         #3
         self.xPlot = TaurusPlot(self.centralwidget)
-        data = range(0,20)
+        # data = range(0,20)
         # self.xPlot.setGeometry(QtCore.QRect(30, 100, 300, 200))
 
         #4
         self.yPlot = TaurusPlot(self.centralwidget)
+        # marker = self.yPlot.getPickedMarker()
+        # marker.setShowQuality
         # self.yPlot.setGeometry(QtCore.QRect(520, 100, 300, 200))
 
         #1
@@ -79,6 +86,28 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.valueEdit = QtGui.QTextEdit()
         self.valueEdit.setReadOnly(True)
         self.valueEdit.setMaximumWidth(180)
+
+    def plotSett(self):
+        print("PLOT SETT")
+
+        curveSymbol = Qwt.QwtSymbol(Qwt.QwtSymbol.Ellipse,
+                                    Qt.QBrush(Qt.Qt.red),
+                                    Qt.QPen(Qt.Qt.black, 2),
+                                    Qt.QSize(9, 9))
+
+        # p1 = CurveAppearanceProperties(sStyle=Qwt.QwtSymbol.Rect,
+        #                        sSize=5,
+        #                        sColor="green",
+        #                        sFill=False,
+        #                        lStyle=Qt.Qt.NoPen)
+
+        # self.xPlot.setCurveAppearanceProperties(p1)
+
+        sd = self.xPlot.getCurveNames()
+        # self.xPlot.getCurveNames().setSymbol(curveSymbol)
+        # sd = self.yPlot.setSymbol
+        print sd
+        # self.yPlot.
 
     def layouts(self, MainWindow):
         mainLayout = QtGui.QGridLayout()
@@ -157,14 +186,20 @@ class Ui_MainWindow(QtGui.QMainWindow):
         sclX = pr1avgData[1][0:pnt3]
         sclY = pr1avgData[1][pnt3:pnt4]
 
-        self.xPlot.attachRawData({"x":sclX, "y":dataX})
-        self.yPlot.attachRawData({"x":sclY, "y":dataY})
+        p1 = CurveAppearanceProperties(sStyle=Qwt.QwtSymbol.Ellipse,
+                       sSize=5,
+                       sColor="blue",
+                       sFill=True,
+                       lStyle=Qt.Qt.NoPen)
+
+        self.xPlot.attachRawData({"x":sclX, "y":dataX},properties=p1)
+        self.yPlot.attachRawData({"x":sclY, "y":dataY},properties=p1)
         # self.xPlot.getPickedMarker()
 
         if MDEBUG:
             print("1: " + str(pnt1) + "  2: " + str(pnt2) + "  3: "  + str(pnt3) + "  4: " + str(pnt4))
-            tt = self.xPlot.createConfigDict()
-            print(tt)
+            # tt = self.xPlot.createConfigDict()
+            # print(tt)
 
     def chTangoData(self):
         baselineX = tango_test.read_attribute("baselineX")
@@ -185,13 +220,13 @@ class Ui_MainWindow(QtGui.QMainWindow):
         prWYval = prWY.value
 
         self.valueEdit.clear()
-        self.valueEdit.append("X0 = " + str(prX0val[0]))
+        self.valueEdit.append("X0 = " + str(round(prX0val[0],3)))
         self.valueEdit.append("")
-        self.valueEdit.append("Y0 = " + str(prY0val[0]))
+        self.valueEdit.append("Y0 = " + str(round(prY0val[0],3)))
         self.valueEdit.append("")
-        self.valueEdit.append("Wx = " + str(prWXval[0]))
+        self.valueEdit.append("Wx = " + str(round(prWXval[0],3)))
         self.valueEdit.append("")
-        self.valueEdit.append("Wy = " + str(prWYval[0]))
+        self.valueEdit.append("Wy = " + str(round(prWYval[0],3)))
         self.valueEdit.append("")
 
         self.nWiresX = tango_test.read_attribute("wiresX").value
