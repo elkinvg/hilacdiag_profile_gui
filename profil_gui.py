@@ -10,6 +10,7 @@ from taurus.qt.qtgui.plot import TaurusPlot,CurveAppearanceProperties
 # from taurus.qt.qtgui.input import TaurusValueComboBox
 
 tango_test = PyTango.DeviceProxy("tango://nuclotango.jinr.ru:10000/training/hilacdiag/1")
+#MDEBUG = False
 MDEBUG = True
 
 def test():
@@ -27,14 +28,14 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.centralwidget = QtGui.QWidget(MainWindow)
 
         self.widgets(MainWindow)
-        if MDEBUG:
-            self.plotSett() # ??? debug
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.centerOnScreen(MainWindow)
         self.layouts(MainWindow)
         self.readTangoData()
         self.signals()
+        if MDEBUG:
+            self.plotSett() # ??? debug
 
     def widgets(self,MainWindow):
         #3
@@ -90,23 +91,24 @@ class Ui_MainWindow(QtGui.QMainWindow):
     def plotSett(self):
         print("PLOT SETT")
 
-        curveSymbol = Qwt.QwtSymbol(Qwt.QwtSymbol.Ellipse,
-                                    Qt.QBrush(Qt.Qt.red),
-                                    Qt.QPen(Qt.Qt.black, 2),
-                                    Qt.QSize(9, 9))
+        # curveSymbol = Qwt.QwtSymbol(Qwt.QwtSymbol.Ellipse,
+        #                             Qt.QBrush(Qt.Qt.red),
+        #                             Qt.QPen(Qt.Qt.black, 2),
+        #                             Qt.QSize(9, 9))
 
-        # p1 = CurveAppearanceProperties(sStyle=Qwt.QwtSymbol.Rect,
-        #                        sSize=5,
-        #                        sColor="green",
-        #                        sFill=False,
-        #                        lStyle=Qt.Qt.NoPen)
+        p1 = CurveAppearanceProperties(sStyle=Qwt.QwtSymbol.Ellipse,
+                               sSize=5,
+                               sColor="blue",
+                               sFill=True,
+                               lStyle=Qt.Qt.NoPen)
 
-        # self.xPlot.setCurveAppearanceProperties(p1)
+        self.xPlot.setCurveAppearanceProperties({'wireX':p1})
+        self.yPlot.setCurveAppearanceProperties({'wireY':p1})
 
-        sd = self.xPlot.getCurveNames()
+        # sd = self.xPlot.getCurveNames()
         # self.xPlot.getCurveNames().setSymbol(curveSymbol)
         # sd = self.yPlot.setSymbol
-        print sd
+        # print sd
         # self.yPlot.
 
     def layouts(self, MainWindow):
@@ -162,8 +164,11 @@ class Ui_MainWindow(QtGui.QMainWindow):
         if MDEBUG:
             print(command)
         else:
-            tango_test.command_inout(command)
-
+			try:
+				tango_test.command_inout(command)
+			except PyTango.DevFailed as exc:
+				self.setBeginAIRange()
+				print(str(exc))
 
     def signals(self):
         self.connect(self.rangeAICommand,QtCore.SIGNAL("activated(int)"),self.commandRange)
@@ -186,14 +191,18 @@ class Ui_MainWindow(QtGui.QMainWindow):
         sclX = pr1avgData[1][0:pnt3]
         sclY = pr1avgData[1][pnt3:pnt4]
 
-        p1 = CurveAppearanceProperties(sStyle=Qwt.QwtSymbol.Ellipse,
-                       sSize=5,
-                       sColor="blue",
-                       sFill=True,
-                       lStyle=Qt.Qt.NoPen)
+        # p1 = CurveAppearanceProperties(sStyle=Qwt.QwtSymbol.Ellipse,
+        #                sSize=5,
+        #                sColor="blue",
+        #                sFill=True,
+        #                lStyle=Qt.Qt.NoPen)
+        # self.xPlot.attachRawData({"x":sclX, "y":dataX},properties=p1)
+        # self.yPlot.attachRawData({"x":sclY, "y":dataY},properties=p1)
 
-        self.xPlot.attachRawData({"x":sclX, "y":dataX},properties=p1)
-        self.yPlot.attachRawData({"x":sclY, "y":dataY},properties=p1)
+        self.xPlot.attachRawData({"x":sclX, "y":dataX, 'title':"wireX"})
+        self.yPlot.attachRawData({"x":sclY, "y":dataY, 'title':"wireY"})
+
+
         # self.xPlot.getPickedMarker()
 
         if MDEBUG:
