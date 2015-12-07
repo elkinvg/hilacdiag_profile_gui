@@ -10,6 +10,7 @@ from taurus.qt.qtgui.plot import TaurusPlot,CurveAppearanceProperties
 # from taurus.qt.qtgui.input import TaurusValueComboBox
 
 tango_test = PyTango.DeviceProxy("tango://nuclotango.jinr.ru:10000/training/hilacdiag/1")
+#MDEBUG = False
 MDEBUG = True
 
 def test():
@@ -90,24 +91,19 @@ class Ui_MainWindow(QtGui.QMainWindow):
     def plotSett(self):
         print("PLOT SETT")
 
-        curveSymbol = Qwt.QwtSymbol(Qwt.QwtSymbol.Ellipse,
-                                    Qt.QBrush(Qt.Qt.red),
-                                    Qt.QPen(Qt.Qt.black, 2),
-                                    Qt.QSize(9, 9))
+        # curveSymbol = Qwt.QwtSymbol(Qwt.QwtSymbol.Ellipse,
+        #                             Qt.QBrush(Qt.Qt.red),
+        #                             Qt.QPen(Qt.Qt.black, 2),
+        #                             Qt.QSize(9, 9))
 
-        p1 = CurveAppearanceProperties(sStyle=Qwt.QwtSymbol.Rect,
+        p1 = CurveAppearanceProperties(sStyle=Qwt.QwtSymbol.Ellipse,
                                sSize=5,
-                               sColor="green",
-                               sFill=False,
+                               sColor="blue",
+                               sFill=True,
                                lStyle=Qt.Qt.NoPen)
 
-        p2 = self.xPlot.createConfig(self,curvenames=None)
-        # p2['CurveProp'] = {'sStyle':"green"}
-
-        print(p2)
-        # p2["sStyle"]=Qwt.QwtSymbol.Ellipse
-
         self.xPlot.setCurveAppearanceProperties({'wireX':p1})
+        self.yPlot.setCurveAppearanceProperties({'wireY':p1})
 
         # sd = self.xPlot.getCurveNames()
         # self.xPlot.getCurveNames().setSymbol(curveSymbol)
@@ -168,8 +164,11 @@ class Ui_MainWindow(QtGui.QMainWindow):
         if MDEBUG:
             print(command)
         else:
-            tango_test.command_inout(command)
-
+			try:
+				tango_test.command_inout(command)
+			except PyTango.DevFailed as exc:
+				self.setBeginAIRange()
+				print(str(exc))
 
     def signals(self):
         self.connect(self.rangeAICommand,QtCore.SIGNAL("activated(int)"),self.commandRange)
